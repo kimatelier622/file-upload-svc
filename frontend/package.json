@@ -1,0 +1,13 @@
+{
+  "name": "file-upload-ui",
+  "private": true,
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "test": "vitest run",
+    "generate:api": "openapi-generator-cli generate -i ../specs/001-authenticated-upload/contracts/openapi.yaml -g typescript-fetch -o src/api/generated"
+  },
+  "dependencies": { "@vitejs/plugin-react": "latest", "react": "latest", "react-dom": "latest", "vite": "latest" },
+  "devDependencies": { "@openapitools/openapi-generator-cli": "latest", "@testing-library/react": "latest", "@testing-library/jest-dom": "latest", "jsdom": "latest", "typescript": "latest", "vitest": "latest" }
+}

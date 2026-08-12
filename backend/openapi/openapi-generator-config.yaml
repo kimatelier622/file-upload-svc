@@ -1,0 +1,7 @@
+generatorName: spring
+inputSpec: ../../specs/001-authenticated-upload/contracts/openapi.yaml
+outputDir: ../target/generated-sources/openapi
+additionalProperties:
+  interfaceOnly: true
+  useSpringBoot3: true
+  useTags: true

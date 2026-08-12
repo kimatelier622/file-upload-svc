@@ -1,0 +1,114 @@
+openapi: 3.1.0
+info:
+  title: File Upload Service API
+  version: 1.0.0
+  description: Authenticated single-file uploads. This document is the API source of truth.
+servers:
+  - url: /api
+paths:
+  /upload:
+    post:
+      operationId: uploadFile
+      summary: Upload one permitted file
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: >-
+                    A file no larger than 10 MiB. The service detects content and accepts only
+                    image/jpeg (JPG/JPEG), image/png, or application/pdf; the file name and
+                    client-supplied media type do not determine acceptance.
+      responses:
+        '201':
+          description: File accepted and available by its returned reference.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadResponse'
+        '400':
+          $ref: '#/components/responses/InvalidUpload'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '413':
+          $ref: '#/components/responses/FileTooLarge'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '500':
+          $ref: '#/components/responses/UploadUnavailable'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    UploadResponse:
+      type: object
+      additionalProperties: false
+      required: [file_id, access_url]
+      properties:
+        file_id:
+          type: string
+          minLength: 1
+          description: Opaque identifier assigned to the accepted file.
+        access_url:
+          type: string
+          format: uri
+          minLength: 1
+          description: URL that identifies the accepted file.
+    ErrorResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          minLength: 1
+        message:
+          type: string
+          minLength: 1
+  responses:
+    InvalidUpload:
+      description: The request did not contain exactly one non-empty file.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthenticated:
+      description: A valid JWT Bearer Token was not supplied.
+      headers:
+        WWW-Authenticate:
+          schema:
+            type: string
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    FileTooLarge:
+      description: The file is larger than 10 MiB (10,485,760 bytes).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    UnsupportedMediaType:
+      description: The detected type is not JPEG, PNG, or PDF.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    UploadUnavailable:
+      description: The service could not make an otherwise valid upload available.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

@@ -1,0 +1,3 @@
+generatorName: typescript-fetch
+inputSpec: ../../specs/001-authenticated-upload/contracts/openapi.yaml
+outputDir: ../src/api/generated
