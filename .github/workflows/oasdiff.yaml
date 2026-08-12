@@ -1,0 +1,30 @@
+name: OpenAPI Breaking Change Check
+
+on:
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'specs/**/contracts/openapi.yaml'
+
+jobs:
+  oasdiff:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # 必须：完整历史，否则取不到 origin/main 的引用
+
+      - name: Fetch base branch
+        run: git fetch --depth=1 origin ${{ github.base_ref }}
+
+      - name: Run oasdiff breaking check
+        uses: oasdiff/oasdiff-action/breaking@v0
+        with:
+          base: 'origin/${{ github.base_ref }}:specs/001-authenticated-upload/contracts/openapi.yaml'
+          revision: 'HEAD:specs/001-authenticated-upload/contracts/openapi.yaml'
+          fail-on: WARN
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
