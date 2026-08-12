@@ -1,30 +1,30 @@
-# AI 驱动 API 契约定义开发新模式 — 完整 Demo 笔记
+# AI-Driven API Contract Definition Development New Model — Full Demo Notes
 
-本文档记录了从零搭建“带鉴权的文件上传服务”的完整 SDD 实践过程，共四幕：规范定义 → 契约驱动 → 工程化熔断 → 治理度量。
+>This document records the complete SDD practice process for building an "authenticated file upload service" from scratch, consisting of four acts: Specification Definition → Contract-Driven → Engineering Circuit Breaker → Governance Metrics.
 
 ---
 
-## 前置环境要求
+## Prerequisites
 
-| 工具 | 版本要求 | 安装方式 |
+| Tool | Version Requirement | Installation Method |
 |------|---------|----------|
 | Python | 3.11+ | [python.org](https://python.org) |
 | Git | 2.30+ | [git-scm.com](https://git-scm.com) |
-| Node.js | 20+（用于 Codex CLI） | `nvm install 20` 或 [nodejs.org](https://nodejs.org) |
-| uv | 最新 | `curl -LsSf https://astral.sh/uv/install.sh | sh` |
-| specify-cli | 最新 | `uv tool install specify-cli --from git+https://github.com/github/spec-kit.git` |
-| Codex CLI | 最新 | `npm install -g @openai/codex` |
-| Schemathesis | 最新 | `pipx install schemathesis` |
-| oasdiff | 1.28+ | 下载 Windows 二进制或 `go install github.com/oasdiff/oasdiff@latest` |
-| Tessl CLI | 最新 | `winget install tessl.tessl` |
+| Node.js | 20+ (for Codex CLI) | `nvm install 20` or [nodejs.org](https://nodejs.org) |
+| uv | Latest | `curl -LsSf https://astral.sh/uv/install.sh | sh` |
+| specify-cli | Latest | `uv tool install specify-cli --from git+https://github.com/github/spec-kit.git` |
+| Codex CLI | Latest | `npm install -g @openai/codex` |
+| Schemathesis | Latest | `pipx install schemathesis` |
+| oasdiff | 1.28+ | Download Windows binary or `go install github.com/oasdiff/oasdiff@latest` |
+| Tessl CLI | Latest | `winget install tessl.tessl` |
 
-> **Windows 提示**：安装后请确保上述工具的路径已添加到系统环境变量 `PATH` 中（通常安装程序会自动处理）。
+> **Windows Tip**: After installation, ensure the paths of the above tools are added to the system environment variable `PATH` (the installer usually handles this automatically).
 
 ---
 
-## OpenAPI 契约（核心规范）
+## OpenAPI Contract (Core Specification)
 
-在整个 Demo 中，`openapi.yaml` 是**唯一的事实源**。以下是“带鉴权的文件上传服务”的 OpenAPI 3.1 规范示例：
+Throughout the demo, `openapi.yaml` is the **single source of truth**. Below is an example OpenAPI 3.1 specification for the "authenticated file upload service":
 
 yaml
 openapi: 3.1.0
@@ -34,7 +34,7 @@ version: 1.0.0
 paths:
 /upload:
 post:
-summary: 上传文件
+summary: Upload file
 operationId: uploadFile
 security:
 ▪ bearerAuth: []
@@ -58,7 +58,7 @@ security:
 
       responses:
         '201':
-          description: 上传成功
+          description: Upload successful
           content:
             application/json:
               schema:
@@ -75,11 +75,11 @@ security:
                   ▪ access_url
 
         '401':
-          description: 未认证
+          description: Unauthenticated
         '413':
-          description: 文件过大
+          description: File too large
         '415':
-          description: 不支持的文件类型
+          description: Unsupported file type
 components:
 securitySchemes:
 bearerAuth:
@@ -88,166 +88,165 @@ scheme: bearer
 bearerFormat: JWT
 
 
-该契约定义了：
-- **鉴权**：Bearer Token（JWT）
-- **请求**：`multipart/form-data`，包含 `file`（二进制）和可选 `folder`
-- **响应**：成功返回 `file_id` 和 `access_url`
-- **错误码**：401（未认证）、413（文件过大）、415（类型不支持）
+This contract defines:
+- **Authentication**: Bearer Token (JWT)
+- **Request**: `multipart/form-data`, containing `file` (binary) and optional `folder`
+- **Response**: Successful return of `file_id` and `access_url`
+- **Error codes**: 401 (Unauthenticated), 413 (File too large), 415 (Type not supported)
 
 ---
 
-## 第一幕：Spec Kit 五步生成规范
+## Act One: Spec Kit Five-Step Specification Generation
 
-### 环境准备
+### Environment Setup
 
 powershell
-安装 uv（Python 包管理器）
+Install uv (Python package manager)
 
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
-安装 specify-cli（Spec Kit CLI）
+Install specify-cli (Spec Kit CLI)
 
 uv tool install specify-cli --from git+https://github.com/github/spec-kit.git
 
-验证
+Verify
 
 specify --version
 
 
-### 初始化项目（Codex 集成，Skills 模式）
+### Initialize Project (Codex Integration, Skills Mode)
 
-powershell
+```powershell
 cd E:\journey\spec-driven
 specify init file-upload-svc --integration codex --integration-options="--skills"
 cd file-upload-svc
+```
 
 
-### 五步规范生成（在 Codex CLI 中执行）
+### Five-Step Specification Generation (Executed in Codex CLI)
 
-powershell
-启动 Codex CLI
+```powershell
+## Start Codex CLI
 
 codex
 
-1. 宪法（不可变原则）
+## 1. Constitution (Immutable Principles)
 
 $speckit-constitution Create principles for a secure file upload service:
 • All endpoints require Bearer Token authentication
-
 • Security: Max 10MB file size, only allow jpg/jpeg/png/pdf
-
 • OpenAPI 3.1 is the single source of truth
 
-2. 规格（用户故事与验收标准）
+## 2. Specify (User Stories & Acceptance Criteria)
 
 $speckit-specify Build an authenticated file upload API:
 • POST /upload: Accepts a single file with JWT in Authorization header
-
 • Returns JSON: { "file_id": "...", "access_url": "..." }
-
 • Validation: Reject files larger than 10MB or wrong mime type
 
-3. 计划（技术方案 + OpenAPI 契约）
+## 3. Plan (Technical Solution + OpenAPI Contract)
 
 $speckit-plan Use Spring Boot (backend) and React+TS (frontend).
 Adopt OpenAPI Generator for scaffolding. The backend must use Spring Security for JWT validation.
 
-4. 任务（原子化任务清单）
+## 4. Tasks (Atomic Task List)
 
 $speckit-tasks
 
-5. 实现（按任务生成代码）
+## 5. Implement (Generate Code by Task)
 
 $speckit-implement
+```
 
-
-**产出文件**：
+**Output files**:
 - `constitution.md`
 - `spec.md`
-- `plan.md`（内含 OpenAPI 3.1 契约）
+- `plan.md` (contains OpenAPI 3.1 contract)
 - `tasks.md`
-- 后端代码（Spring Boot）、前端代码（React + TypeScript）
+- Backend code (Spring Boot), Frontend code (React + TypeScript)
 
 ---
 
-## 第二幕：契约驱动 — 测试与漂移检测
+## Act Two: Contract-Driven — Testing & Drift Detection
 
-### 1. 启动后端服务
+### 1. Start Backend Service
 
-在运行测试前，确保后端服务已启动：
+Before running tests, ensure the backend service is started:
 
-powershell
-启动 Spring Boot 后端（假设在 backend 目录）
+```powershell
+# Start Spring Boot backend (assuming in backend directory)
 
 cd backend
 ./mvnw spring-boot:run
-服务默认监听 http://localhost:8080
+# Service defaults to listening on http://localhost:8080
+```
 
 
+### 2. Schemathesis Contract Testing
 
-### 2. Schemathesis 契约测试
-
-powershell
-安装 Schemathesis
+```powershell
+## Install Schemathesis
 
 pipx install schemathesis
 
-运行契约测试（指定后端地址）
+## Run contract test (specify backend address)
 
 st run http://localhost:8080/openapi.yaml --checks all --max-examples 50
 
-或者直接使用本地 OpenAPI 文件 + 指定 base URL
+## Or use local OpenAPI file + specify base URL
 
 st run specs/001-authenticated-upload/contracts/openapi.yaml --base-url http://localhost:8080 --checks all --max-examples 50
+```
 
+**Parameter explanation**:
+- `--url` or `--base-url`: Specify backend service address (default reads from OpenAPI's `servers` field)
+- `--checks all`: Enable all checks (including status code, response body, headers, etc.)
+- `--max-examples 50`: Generate up to 50 test cases per endpoint
 
-**参数说明**：
-- `--url` 或 `--base-url`：指定后端服务地址（默认为从 OpenAPI 的 `servers` 字段读取）
-- `--checks all`：启用所有检查（包括状态码、响应体、Header 等）
-- `--max-examples 50`：每个端点最多生成 50 个测试用例
+**Expected result**: All test cases pass, no 5xx errors.
 
-**预期结果**：所有测试用例通过，无 5xx 错误。
+### 3. oasdiff Drift Detection
 
-### 3. oasdiff 漂移检测
-
-#### 设置环境变量（PowerShell）
+#### Set Environment Variables (PowerShell)
 
 powershell
-将 oasdiff.exe 所在目录添加到 PATH（临时）
+Temporarily add oasdiff.exe directory to PATH
 
+```powershell
 $env:Path += ";E:\journey\spec-driven\file-upload-svc\tools"
+```
 
-永久添加（需要管理员权限）
+Permanently add (requires admin privileges)
 
 [Environment]::SetEnvironmentVariable("Path", $env:Path + ";E:\journey\spec-driven\file-upload-svc\tools", [EnvironmentVariableTarget]::User)
+```
 
-
-#### 运行漂移检测
+#### Run Drift Detection
 
 powershell
-准备基线文件与修改文件
+Prepare baseline and modified files
 
 Copy-Item specs/001-authenticated-upload/contracts/openapi.yaml openapi-baseline.yaml
 Copy-Item specs/001-authenticated-upload/contracts/openapi.yaml openapi-modified.yaml
 
-故意破坏：将 file_id 的 type 从 string 改为 integer（用编辑器修改 openapi-modified.yaml）
+Intentionally break: change file_id type from string to integer (edit openapi-modified.yaml with editor)
 
-运行破坏性变更检测
+Run breaking change detection
 
 oasdiff breaking openapi-baseline.yaml openapi-modified.yaml
 
-检查退出码（0=无破坏，1=有破坏）
+Check exit code (0 = no breaking, 1 = breaking)
 
 echo $LASTEXITCODE
 
 
-**预期输出**：列出破坏性变更，如 `modified type: string -> integer (breaking)`。
+**Expected output**: Lists breaking changes, e.g., `modified type: string -> integer (breaking)`.
 
 ---
 
-## 第三幕：Git 工程化 — PR 熔断与分支保护
+## Act Three: Git Engineering — PR Circuit Breaker & Branch Protection
 
-### 1. 创建 GitHub 仓库并推送
+### 1. Create GitHub Repository and Push
 
 powershell
 git init
@@ -258,9 +257,9 @@ git remote add origin https://github.com/<YOUR_USERNAME>/file-upload-svc.git
 git push -u origin main
 
 
-### 2. 配置 CI 工作流
+### 2. Configure CI Workflow
 
-创建 `.github/workflows/oasdiff.yaml`：
+Create `.github/workflows/oasdiff.yaml`:
 
 yaml
 name: OpenAPI Breaking Change Check
@@ -296,65 +295,65 @@ steps:
           GITHUB_TOKEN: ${{ github.token }}
 
 
-推送至 main 分支。
+Push to main branch.
 
-### 3. 演示破坏性变更被拦截
+### 3. Demonstrate Breaking Change Being Blocked
 
 powershell
 git checkout -b feat/break-contract
-修改 openapi.yaml 中 file_id 的 type 为 integer
+Modify openapi.yaml: change file_id type to integer
 
 git add .
 git commit -m "feat: break contract (intentional)"
 git push -u origin feat/break-contract
 
 
-在 GitHub 创建 PR → main，观察 Actions 运行 → `breaking-changes` job 失败（红色❌），Merge 按钮变灰。
+Create PR → main on GitHub, observe Actions run → `breaking-changes` job fails (red ❌), Merge button becomes gray.
 
-### 4. 演示合法变更通过
+### 4. Demonstrate Legitimate Change Passing
 
 powershell
 git checkout main
 git checkout -b feat/add-field
-在 openapi.yaml 中新增一个可选字段（非破坏性）
+Add an optional field in openapi.yaml (non-breaking)
 
 git add .
 git commit -m "feat: add optional field"
 git push -u origin feat/add-field
 
 
-创建 PR，Actions 通过（绿色✅），Merge 按钮可用。
+Create PR, Actions passes (green ✅), Merge button available.
 
-### 5. 配置分支保护规则（可选）
+### 5. Configure Branch Protection Rules (Optional)
 
-在 GitHub 仓库 Settings → Branches → Add rule：
+In GitHub repository Settings → Branches → Add rule:
 - Branch name pattern: `main`
 - ✅ Require a pull request before merging
-- ✅ Require status checks to pass before merging → 搜索 `breaking-changes` 并选中
+- ✅ Require status checks to pass before merging → search for `breaking-changes` and select it
 - ✅ Include administrators
 - Save changes
 
 ---
 
-## 第四幕：Tessl 治理 — 发布 plugin 与评估
+## Act Four: Tessl Governance — Publishing Plugin & Evaluation
 
-### 1. 安装 Tessl CLI
+### 1. Install Tessl CLI
 
 powershell
-卸载 npm 旧版本（如有）
+Uninstall old npm version if any
 
 npm uninstall -g @tessl/cli
 
-使用 winget 安装（推荐）
+Install using winget (recommended)
 
 winget install tessl.tessl
 
-验证
+Verify
 
 tessl --help
 
 
-### 2. 初始化与登录
+### 2. Initialize and Login
 
 powershell
 cd E:\journey\spec-driven\file-upload-svc
@@ -363,77 +362,78 @@ tessl login
 tessl whoami
 
 
-### 3. 创建 Workspace
+### 3. Create Workspace
 
 powershell
 tessl workspace create kimatelier622
 tessl workspace list
 
 
-### 4. 安装官方 SDD Skill
+### 4. Install Official SDD Skill
 
 powershell
 tessl install kevin-ryan-io/spec-driven-development
 
 
-### 5. 将本地规范封装为 Plugin
+### 5. Package Local Specification as Plugin
 
 powershell
-创建 plugin 骨架（已在 plugins/file-upload-svc 下）
+Create plugin skeleton (already under plugins/file-upload-svc)
 
-编辑 plugin.json 和 SKILL.md（可选）
+Edit plugin.json and SKILL.md (optional)
 
-校验结构
+Validate structure
 
 tessl skill lint ./plugins/file-upload-svc
 
-质量审查
+Quality review
 
 tessl skill review ./plugins/file-upload-svc
 
-生成评估场景
+Generate evaluation scenarios
 
 tessl eval generate ./plugins/file-upload-svc
 
-运行评估
+Run evaluation
 
 tessl eval run ./plugins/file-upload-svc
 
-发布到个人 workspace
+Publish to personal workspace
 
 tessl skill publish ./plugins/file-upload-svc --workspace kimatelier622
 
 
-**发布成功输出**：
+**Successful publish output**:
+
 
 √ Published kimatelier622/file-upload-svc@0.1.0 to https://tessl.io/registry/kimatelier622/file-upload-svc/0.1.0
 
 
-### 6. 查看注册表（可选）
+### 6. View Registry (Optional)
 
-访问 `https://tessl.io/registry/kimatelier622/file-upload-svc/0.1.0`（需等待几分钟同步）。
-
----
-
-## 附录：完整命令速查表
-
-| 阶段 | 命令 | 作用 |
-|------|------|------|
-| 第一幕 | `specify init ...` | 初始化 Spec Kit 项目 |
-| 第一幕 | `$speckit-constitution` | 生成宪法 |
-| 第一幕 | `$speckit-specify` | 生成规格 |
-| 第一幕 | `$speckit-plan` | 生成计划（含 OpenAPI） |
-| 第一幕 | `$speckit-tasks` | 生成任务 |
-| 第一幕 | `$speckit-implement` | AI 实现代码 |
-| 第二幕 | `st run --base-url http://localhost:8080 openapi.yaml` | Schemathesis 契约测试 |
-| 第二幕 | `oasdiff breaking base.yaml rev.yaml` | 本地漂移检测 |
-| 第三幕 | `.github/workflows/oasdiff.yaml` | CI 熔断工作流 |
-| 第三幕 | GitHub 分支保护规则 | 禁止直接推 main |
-| 第四幕 | `tessl skill lint` | 校验 plugin 结构 |
-| 第四幕 | `tessl skill review` | 质量审查 |
-| 第四幕 | `tessl eval generate/run` | 生成/运行评估 |
-| 第四幕 | `tessl skill publish` | 发布到注册表 |
+Visit `https://tessl.io/registry/kimatelier622/file-upload-svc/0.1.0` (may take a few minutes to sync).
 
 ---
 
-> **总结**：从 Spec Kit 定义规范 → Codex 按规实现 → Schemathesis 验证 → oasdiff 熔断 → Tessl 治理度量，形成完整的“契约驱动开发”闭环。规范不再是文档，而是可执行、可测试、可治理的智能资产。
+## Appendix: Complete Command Quick Reference Table
+
+| Stage | Command | Purpose |
+|-------|---------|---------|
+| Act One | `specify init ...` | Initialize Spec Kit project |
+| Act One | `$speckit-constitution` | Generate constitution |
+| Act One | `$speckit-specify` | Generate specification |
+| Act One | `$speckit-plan` | Generate plan (includes OpenAPI) |
+| Act One | `$speckit-tasks` | Generate tasks |
+| Act One | `$speckit-implement` | AI implement code |
+| Act Two | `st run --base-url http://localhost:8080 openapi.yaml` | Schemathesis contract testing |
+| Act Two | `oasdiff breaking base.yaml rev.yaml` | Local drift detection |
+| Act Three | `.github/workflows/oasdiff.yaml` | CI circuit breaker workflow |
+| Act Three | GitHub branch protection rules | Prevent direct pushes to main |
+| Act Four | `tessl skill lint` | Validate plugin structure |
+| Act Four | `tessl skill review` | Quality review |
+| Act Four | `tessl eval generate/run` | Generate/run evaluations |
+| Act Four | `tessl skill publish` | Publish to registry |
+
+---
+
+> **Summary**: From Spec Kit defining specifications → Codex implementing according to rules → Schemathesis verifying → oasdiff circuit breaking → Tessl governance metrics, forming a complete "contract-driven development" closed loop. Specifications are no longer documents, but executable, testable, and governable intelligent assets.
