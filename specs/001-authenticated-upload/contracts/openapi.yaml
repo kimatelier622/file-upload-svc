@@ -62,7 +62,7 @@ components:
           minLength: 1
           description: Opaque identifier assigned to the accepted file.
         access_url:
-          type: string
+          type: integer
           format: uri
           minLength: 1
           description: URL that identifies the accepted file.
