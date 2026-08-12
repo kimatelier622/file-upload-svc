@@ -1,0 +1,11 @@
+{
+  "name": "kevin-ryan-io/spec-driven-development",
+  "version": "1.1.0",
+  "summary": "A practitioner methodology for AI-native software engineering where specifications are the primary artifact and code is a generated side effect.",
+  "private": false,
+  "skills": {
+    "spec-driven-development": {
+      "path": "SKILL.md"
+    }
+  }
+}

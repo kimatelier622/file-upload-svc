@@ -1,0 +1,16 @@
+{
+  "name": "file-upload-svc",
+  "mode": "vendored",
+  "dependencies": {
+    "kevin-ryan-io/spec-driven-development": {
+      "version": "1.1.0"
+    },
+    "local/file-upload-svc": {
+      "source": "file:plugins/file-upload-svc"
+    }
+  },
+  "agents": [
+    "claude-code",
+    "codex"
+  ]
+}
