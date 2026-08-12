@@ -209,36 +209,37 @@ st run specs/001-authenticated-upload/contracts/openapi.yaml --base-url http://l
 
 #### Set Environment Variables (PowerShell)
 
-powershell
-Temporarily add oasdiff.exe directory to PATH
+- Temporarily add oasdiff.exe directory to PATH
 
 ```powershell
 $env:Path += ";E:\journey\spec-driven\file-upload-svc\tools"
 ```
 
-Permanently add (requires admin privileges)
+- Permanently add (requires admin privileges)
 
+```powershell
 [Environment]::SetEnvironmentVariable("Path", $env:Path + ";E:\journey\spec-driven\file-upload-svc\tools", [EnvironmentVariableTarget]::User)
 ```
 
 #### Run Drift Detection
 
-powershell
-Prepare baseline and modified files
+###### Prepare baseline and modified files
 
 Copy-Item specs/001-authenticated-upload/contracts/openapi.yaml openapi-baseline.yaml
 Copy-Item specs/001-authenticated-upload/contracts/openapi.yaml openapi-modified.yaml
 
 Intentionally break: change file_id type from string to integer (edit openapi-modified.yaml with editor)
 
-Run breaking change detection
+###### Run breaking change detection
 
+```shell
 oasdiff breaking openapi-baseline.yaml openapi-modified.yaml
+```
 
-Check exit code (0 = no breaking, 1 = breaking)
-
+###### Check exit code (0 = no breaking, 1 = breaking)
+```shell
 echo $LASTEXITCODE
-
+```
 
 **Expected output**: Lists breaking changes, e.g., `modified type: string -> integer (breaking)`.
 
@@ -248,44 +249,44 @@ echo $LASTEXITCODE
 
 ### 1. Create GitHub Repository and Push
 
-powershell
+```shell
 git init
 git add .
 git commit -m "chore: initial spec-driven file upload service"
 git branch -M main
 git remote add origin https://github.com/<YOUR_USERNAME>/file-upload-svc.git
 git push -u origin main
+```
 
 
 ### 2. Configure CI Workflow
 
 Create `.github/workflows/oasdiff.yaml`:
 
-yaml
+```yaml
 name: OpenAPI Breaking Change Check
 
 on:
-pull_request:
-branches: [ "main" ]
-paths:
-◦ 'specs//contracts/openapi.yaml'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'specs/**/contracts/openapi.yaml'
 
 jobs:
-breaking-changes:
-runs-on: ubuntu-latest
-permissions:
-contents: read
-pull-requests: write
-steps:
-◦ uses: actions/checkout@v4
-
+  oasdiff:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-      ◦ name: Fetch base branch
+          fetch-depth: 0   # 必须：完整历史，否则取不到 origin/main 的引用
 
+      - name: Fetch base branch
         run: git fetch --depth=1 origin ${{ github.base_ref }}
-      ◦ name: Run oasdiff breaking check
 
+      - name: Run oasdiff breaking check
         uses: oasdiff/oasdiff-action/breaking@v0
         with:
           base: 'origin/${{ github.base_ref }}:specs/001-authenticated-upload/contracts/openapi.yaml'
@@ -293,34 +294,34 @@ steps:
           fail-on: WARN
         env:
           GITHUB_TOKEN: ${{ github.token }}
-
+```
 
 Push to main branch.
 
 ### 3. Demonstrate Breaking Change Being Blocked
 
-powershell
+```powershell
 git checkout -b feat/break-contract
-Modify openapi.yaml: change file_id type to integer
+## Modify openapi.yaml: change file_id type to integer
 
 git add .
 git commit -m "feat: break contract (intentional)"
 git push -u origin feat/break-contract
-
+```
 
 Create PR → main on GitHub, observe Actions run → `breaking-changes` job fails (red ❌), Merge button becomes gray.
 
 ### 4. Demonstrate Legitimate Change Passing
 
-powershell
+```powershell
 git checkout main
 git checkout -b feat/add-field
-Add an optional field in openapi.yaml (non-breaking)
+# Add an optional field in openapi.yaml (non-breaking)
 
 git add .
 git commit -m "feat: add optional field"
 git push -u origin feat/add-field
-
+```
 
 Create PR, Actions passes (green ✅), Merge button available.
 
@@ -339,45 +340,45 @@ In GitHub repository Settings → Branches → Add rule:
 
 ### 1. Install Tessl CLI
 
-powershell
-Uninstall old npm version if any
+```powershell
+# Uninstall old npm version if any
 
 npm uninstall -g @tessl/cli
 
-Install using winget (recommended)
+# Install using winget (recommended)
 
 winget install tessl.tessl
 
-Verify
+# Verify
 
 tessl --help
-
+```
 
 ### 2. Initialize and Login
 
-powershell
+```powershell
 cd E:\journey\spec-driven\file-upload-svc
 tessl init
 tessl login
 tessl whoami
-
+```
 
 ### 3. Create Workspace
 
-powershell
+```powershell
 tessl workspace create kimatelier622
 tessl workspace list
-
+```
 
 ### 4. Install Official SDD Skill
 
-powershell
+```powershell
 tessl install kevin-ryan-io/spec-driven-development
-
+```
 
 ### 5. Package Local Specification as Plugin
 
-powershell
+```powershell
 Create plugin skeleton (already under plugins/file-upload-svc)
 
 Edit plugin.json and SKILL.md (optional)
@@ -401,7 +402,7 @@ tessl eval run ./plugins/file-upload-svc
 Publish to personal workspace
 
 tessl skill publish ./plugins/file-upload-svc --workspace kimatelier622
-
+```
 
 **Successful publish output**:
 
