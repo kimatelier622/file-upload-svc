@@ -17,4 +17,12 @@ public class LocalFileUploadStorage implements UploadStorage {
     if (!target.getParent().equals(base)) throw new IllegalArgumentException("Invalid file ID");
     Files.copy(content, target);
   }
+  @Override public InputStream read(String fileId) throws Exception {
+    Path base = directory.toAbsolutePath().normalize();
+    Path target = base.resolve(fileId).normalize();
+    if (!target.getParent().equals(base) || !Files.isRegularFile(target)) {
+      throw new java.nio.file.NoSuchFileException(fileId);
+    }
+    return Files.newInputStream(target);
+  }
 }

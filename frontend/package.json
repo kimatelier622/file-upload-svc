@@ -9,5 +9,5 @@
     "generate:api": "openapi-generator-cli generate -i ../specs/001-authenticated-upload/contracts/openapi.yaml -g typescript-fetch -o src/api/generated"
   },
   "dependencies": { "@vitejs/plugin-react": "latest", "react": "latest", "react-dom": "latest", "vite": "latest" },
-  "devDependencies": { "@openapitools/openapi-generator-cli": "latest", "@testing-library/react": "latest", "@testing-library/jest-dom": "latest", "jsdom": "latest", "typescript": "latest", "vitest": "latest" }
+  "devDependencies": { "@openapitools/openapi-generator-cli": "latest", "@testing-library/react": "latest", "@testing-library/jest-dom": "latest", "@types/react": "latest", "@types/react-dom": "latest", "jsdom": "latest", "typescript": "latest", "vitest": "latest" }
 }

@@ -1,0 +1,11 @@
+spring:
+  config:
+    activate:
+      on-profile: local
+app:
+  local-jwt:
+    # Development-only 32-byte HS256 key. Override rather than using this value outside local use.
+    secret: ${LOCAL_JWT_SECRET:MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=}
+    issuer: ${LOCAL_JWT_ISSUER:file-upload-local}
+    subject: ${LOCAL_JWT_SUBJECT:local-uploader}
+    ttl-minutes: ${LOCAL_JWT_TTL_MINUTES:60}

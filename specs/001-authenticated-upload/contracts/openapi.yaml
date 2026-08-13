@@ -66,9 +66,9 @@ components:
           format: uri
           minLength: 1
           description: URL that identifies the accepted file.
-        uploaded_at:
-          type: date-time
-          description: Time the file was accepted.
+        #uploaded_at:
+          #type: date-time
+          #description: Time the file was accepted.
     ErrorResponse:
       type: object
       additionalProperties: false

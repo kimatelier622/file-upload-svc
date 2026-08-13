@@ -3,6 +3,7 @@ package com.example.fileupload.service;
 import com.example.fileupload.domain.UploadResult;
 import com.example.fileupload.storage.UploadStorage;
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,6 +33,16 @@ public class UploadService {
       return new UploadResult(id, URI.create(publicBaseUrl.endsWith("/") ? publicBaseUrl + id : publicBaseUrl + "/" + id).toString());
     } catch (UploadValidationException exception) { throw exception;
     } catch (Exception exception) { throw new UploadValidationException(HttpStatus.INTERNAL_SERVER_ERROR, "upload_unavailable", "The upload could not be made available."); }
+  }
+  public InputStream read(String fileId) {
+    if (fileId == null || !fileId.matches("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}")) {
+      throw invalid(HttpStatus.NOT_FOUND, "file_not_found", "The file was not found.");
+    }
+    try {
+      return storage.read(fileId);
+    } catch (Exception exception) {
+      throw invalid(HttpStatus.NOT_FOUND, "file_not_found", "The file was not found.");
+    }
   }
   private UploadValidationException invalid(HttpStatus status, String code, String message) { return new UploadValidationException(status, code, message); }
 }
