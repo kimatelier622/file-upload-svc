@@ -45,6 +45,42 @@ paths:
           $ref: '#/components/responses/UnsupportedMediaType'
         '500':
           $ref: '#/components/responses/UploadUnavailable'
+    trace:
+      summary: Method not allowed
+      responses:
+        '405':
+          description: Method Not Allowed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /files/{fileId}:
+    get:
+      operationId: getFileInfo
+      summary: Get file metadata by ID
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: fileId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: File metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileInfo'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '404':
+          description: File not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 components:
   securitySchemes:
     bearerAuth:
@@ -66,6 +102,9 @@ components:
           format: uri
           minLength: 1
           description: URL that identifies the accepted file.
+          #uploaded_at:
+          #type: date-time
+          #description: Time the file was accepted.
     ErrorResponse:
       type: object
       additionalProperties: false
@@ -77,6 +116,18 @@ components:
         message:
           type: string
           minLength: 1
+    FileInfo:
+      type: object
+      properties:
+        file_id:
+          type: string
+        filename:
+          type: string
+        size:
+          type: integer
+        uploaded_at:
+          type: string
+          format: date-time
   responses:
     InvalidUpload:
       description: The request did not contain exactly one non-empty file.
