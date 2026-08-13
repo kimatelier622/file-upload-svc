@@ -379,27 +379,27 @@ tessl install kevin-ryan-io/spec-driven-development
 ### 5. Package Local Specification as Plugin
 
 ```powershell
-Create plugin skeleton (already under plugins/file-upload-svc)
+## Create plugin skeleton (already under plugins/file-upload-svc)
 
-Edit plugin.json and SKILL.md (optional)
+## Edit plugin.json and SKILL.md (optional)
 
-Validate structure
+## Validate structure
 
-tessl skill lint ./plugins/file-upload-svc
+tessl skill lint ./plugins/file-upload-svc/skills/file-upload-svc
 
-Quality review
+## Quality review
 
 tessl skill review ./plugins/file-upload-svc
 
-Generate evaluation scenarios
+## Generate evaluation scenarios
 
 tessl eval generate ./plugins/file-upload-svc
 
-Run evaluation
+## Run evaluation
 
 tessl eval run ./plugins/file-upload-svc
 
-Publish to personal workspace
+## Publish to personal workspace
 
 tessl skill publish ./plugins/file-upload-svc --workspace kimatelier622
 ```
@@ -435,6 +435,56 @@ Visit `https://tessl.io/registry/kimatelier622/file-upload-svc/0.1.0` (may take 
 | Act Four | `tessl eval generate/run` | Generate/run evaluations |
 | Act Four | `tessl skill publish` | Publish to registry |
 
+---
+
+---
+### Full Tessl Chain
+```shell
+# ========== 1. Installation and Login ==========
+winget install tessl.tessl --source winget
+tessl login
+tessl whoami
+
+# ========== 2. Workspace ==========
+tessl workspace create myteam
+tessl workspace list
+
+# ========== 3. Project init ==========
+cd your-repo
+tessl init --agent claude-code
+
+# ========== 4. Install Official SDD Skill ==========
+tessl install kevin-ryan-io/spec-driven-development
+# 或者 tessl install tessl-labs/spec-driven-development
+
+# ========== 5. Plugin-first Skeleton ==========
+tessl plugin new `
+  --name myteam/file-upload-svc `
+  --summary "文件上传服务规范与流程" `
+  --workspace myteam `
+  --skill `
+  --skill-name file-upload-svc `
+  --skill-description "When adding or modifying file upload functionality" `
+  --path ./plugins/file-upload-svc
+
+# ========== 6. Write SKILL.md ==========
+# Edit ./plugins/file-upload-svc/skills/file-upload-svc/SKILL.md
+
+# ========== 7. Quality Assurance ==========
+tessl plugin lint ./plugins/file-upload-svc
+tessl review run ./plugins/file-upload-svc --workspace myteam
+tessl review fix ./plugins/file-upload-svc --workspace myteam   # 分数低时自动修复
+tessl eval ./plugins/file-upload-svc/skills/file-upload-svc    # 发布前证明有效性
+
+# ========== 8. Publish ==========
+tessl plugin publish ./plugins/file-upload-svc --workspace myteam
+
+# ========== 9. Future Updates ==========
+tessl plugin publish ./plugins/file-upload-svc --workspace myteam --bump patch
+
+# ========== 10. Installing teammate ==========
+tessl install myteam/file-upload-svc
+```
 ---
 
 > **Summary**: From Spec Kit defining specifications → Codex implementing according to rules → Schemathesis verifying → oasdiff circuit breaking → Tessl governance metrics, forming a complete "contract-driven development" closed loop. Specifications are no longer documents, but executable, testable, and governable intelligent assets.
