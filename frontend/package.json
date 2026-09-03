@@ -2,12 +2,31 @@
   "name": "file-upload-ui",
   "private": true,
   "version": "0.0.1",
+  "type": "module",
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "test": "vitest run",
     "generate:api": "openapi-generator-cli generate -i ../specs/001-authenticated-upload/contracts/openapi.yaml -g typescript-fetch -o src/api/generated"
   },
-  "dependencies": { "@vitejs/plugin-react": "latest", "react": "latest", "react-dom": "latest", "vite": "latest" },
-  "devDependencies": { "@openapitools/openapi-generator-cli": "latest", "@testing-library/react": "latest", "@testing-library/jest-dom": "latest", "@types/react": "latest", "@types/react-dom": "latest", "jsdom": "latest", "typescript": "latest", "vitest": "latest" }
+  "dependencies": {
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@openapitools/openapi-generator-cli": "^2.40.1",
+    "@types/node": "^22.13.14",
+    "@testing-library/jest-dom": "6.6.3",
+    "@testing-library/react": "16.1.0",
+    "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.1",
+    "@vitejs/plugin-react": "^5.1.2",
+    "jsdom": "^26.1.0",
+    "typescript": "^5.8.3",
+    "vite": "^8.2.1",
+    "vitest": "^4.1.10"
+  }
 }

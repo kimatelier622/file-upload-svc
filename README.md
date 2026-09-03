@@ -165,6 +165,26 @@ $speckit-implement
 - `tasks.md`
 - Backend code (Spring Boot), Frontend code (React + TypeScript)
 
+**SDD Quickstart**
+
+```powershell
+# Replace vX.Y.Z with the latest release tag, keeping the leading v.
+
+uv tool install specify-cli --from git+https://github.com/github/spec-kit.git@vX.Y.Z
+specify init my-project --integration copilot
+cd my-project
+Launch your coding agent in the project directory, then:
+
+0. Establish your project principles once (/speckit-constitution). This is a one-time step per project.
+1. Specify what you want to build (/speckit-specify).
+2. Plan how you will build it (/speckit-plan).
+3. Break down the plan into actionable tasks (/speckit-tasks).
+4. Implement the tasks (/speckit-implement).
+5. Converge the implementation against the spec, plan, and tasks (/speckit-converge).
+```
+>Note
+>Repeat steps 4 and 5 until /speckit-converge reports Converged.
+
 ---
 
 ## Act Two: Contract-Driven — Testing & Drift Detection
