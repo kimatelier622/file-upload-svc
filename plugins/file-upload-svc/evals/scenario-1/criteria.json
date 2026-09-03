@@ -1,0 +1,56 @@
+{
+  "context": "Tests whether the agent writes a comprehensive automated test suite covering all three security controls of the file upload service (authentication, file type, file size), with correct expected HTTP status codes and exact size thresholds as specified by the skill.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "Missing auth token → 401",
+      "description": "Test suite contains a test that sends a request to POST /upload with no Authorization header and asserts HTTP 401",
+      "max_score": 12
+    },
+    {
+      "name": "Malformed token → 401",
+      "description": "Test suite contains a test that sends an invalid or malformed Bearer token (not a valid JWT) and asserts HTTP 401",
+      "max_score": 10
+    },
+    {
+      "name": "Expired token → 401",
+      "description": "Test suite contains a test that sends an expired JWT token and asserts HTTP 401",
+      "max_score": 8
+    },
+    {
+      "name": "Valid token acceptance",
+      "description": "Test suite contains a test that sends a valid Bearer token and asserts the response is NOT HTTP 401",
+      "max_score": 8
+    },
+    {
+      "name": "Disallowed type → 415",
+      "description": "Test suite contains a test that uploads a file with a disallowed type (e.g. .txt, .exe, .zip, .docx) and asserts HTTP 415",
+      "max_score": 12
+    },
+    {
+      "name": "Allowed type acceptance",
+      "description": "Test suite contains a test that uploads a file with one of the allowed types (jpg, jpeg, png, or pdf) and asserts the response is NOT HTTP 415",
+      "max_score": 8
+    },
+    {
+      "name": "Content-Type explicitly set",
+      "description": "At least one file-type test case explicitly sets the MIME type (Content-Type) of the uploaded file part in the request, rather than relying solely on the filename extension",
+      "max_score": 8
+    },
+    {
+      "name": "Oversized file → 413",
+      "description": "Test suite contains a test that uploads a file exceeding the allowed size limit and asserts HTTP 413",
+      "max_score": 12
+    },
+    {
+      "name": "Exact size boundary referenced",
+      "description": "Test code references the specific byte count 10485760 (or the string '10 MiB') as the size threshold used when constructing test data",
+      "max_score": 12
+    },
+    {
+      "name": "Within-size acceptance",
+      "description": "Test suite contains a test that uploads a file at or below the allowed size limit and asserts the response is NOT HTTP 413",
+      "max_score": 10
+    }
+  ]
+}

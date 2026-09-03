@@ -1,0 +1,56 @@
+{
+  "context": "Tests whether the agent implements Bearer Token JWT authentication middleware with correct HTTP status codes on failure and secure logging that never exposes raw token values in error responses or log output.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "Bearer scheme required",
+      "description": "Middleware validates the Authorization header uses the 'Bearer' scheme (checks for 'Bearer ' prefix or equivalent, not just any Authorization header value)",
+      "max_score": 10
+    },
+    {
+      "name": "JWT format validation",
+      "description": "Middleware verifies the token is a properly structured JWT — three base64url-encoded segments separated by dots (header.payload.signature)",
+      "max_score": 5
+    },
+    {
+      "name": "Signature verification",
+      "description": "Middleware verifies the JWT signature against a secret or public key (e.g. calls jwt.verify() or equivalent, not just jwt.decode())",
+      "max_score": 10
+    },
+    {
+      "name": "Expiry check",
+      "description": "Middleware checks that the token has not expired (validates the 'exp' claim or equivalent)",
+      "max_score": 5
+    },
+    {
+      "name": "Missing token → 401",
+      "description": "Returns HTTP status 401 when the Authorization header is absent from the request",
+      "max_score": 10
+    },
+    {
+      "name": "Malformed token → 401",
+      "description": "Returns HTTP status 401 when the token is present but structurally invalid or fails signature verification",
+      "max_score": 10
+    },
+    {
+      "name": "Expired token → 401",
+      "description": "Returns HTTP status 401 when the token has a valid structure and signature but has expired",
+      "max_score": 10
+    },
+    {
+      "name": "Token absent from error body",
+      "description": "Error response body does NOT include the raw token string value — the response body contains only generic error descriptions (e.g. 'Unauthorized', 'Invalid token') without interpolating the actual token",
+      "max_score": 15
+    },
+    {
+      "name": "Token absent from log output",
+      "description": "Log statements for authentication failures do NOT include the raw token value — log calls use generic messages, error type, or redacted placeholders rather than interpolating the credential string",
+      "max_score": 15
+    },
+    {
+      "name": "README example present",
+      "description": "middleware/README.md includes a concrete example showing both the error response body format and a sample failed-authentication log line",
+      "max_score": 10
+    }
+  ]
+}

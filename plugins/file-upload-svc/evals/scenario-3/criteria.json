@@ -1,0 +1,61 @@
+{
+  "context": "Tests whether the agent follows a contract-first workflow when extending an existing API: the OpenAPI 3.1 spec is updated to define the new endpoint, and the implementation matches that spec exactly in terms of path, method, and response structure. A CHANGES.md log is used to inspect the agent's workflow reasoning.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "New path in spec",
+      "description": "openapi.yaml defines at least one new path beyond /upload (e.g. /files or similar listing route)",
+      "max_score": 10
+    },
+    {
+      "name": "GET method in spec",
+      "description": "The new path in openapi.yaml uses the GET HTTP method",
+      "max_score": 10
+    },
+    {
+      "name": "200 response schema defined",
+      "description": "The new path's 200 response in openapi.yaml includes a content block with a schema (array or object containing file metadata)",
+      "max_score": 10
+    },
+    {
+      "name": "Security requirement in spec",
+      "description": "The new path in openapi.yaml includes a security requirement entry (e.g. bearerAuth)",
+      "max_score": 10
+    },
+    {
+      "name": "OpenAPI 3.1 version preserved",
+      "description": "The output openapi.yaml retains the openapi version string \"3.1.0\" (not downgraded to 3.0.x or omitted)",
+      "max_score": 5
+    },
+    {
+      "name": "Matching route in server.js",
+      "description": "server.js registers a route at the exact same path declared in openapi.yaml for the new endpoint (e.g. app.get('/files', ...))",
+      "max_score": 15
+    },
+    {
+      "name": "Matching HTTP method in server.js",
+      "description": "The HTTP method used for the new route in server.js matches the method declared in openapi.yaml (both GET)",
+      "max_score": 10
+    },
+    {
+      "name": "JSON array response in server.js",
+      "description": "The new route in server.js responds with res.json(...) returning an array or object containing file records (consistent with openapi.yaml schema)",
+      "max_score": 10
+    },
+    {
+      "name": "CHANGES.md exists",
+      "description": "CHANGES.md is present in the working directory",
+      "max_score": 5
+    },
+    {
+      "name": "CHANGES.md references spec update",
+      "description": "CHANGES.md mentions updating openapi.yaml (or the OpenAPI spec / API spec) as one of the steps taken",
+      "max_score": 10
+    },
+    {
+      "name": "Spec-first order in CHANGES.md",
+      "description": "CHANGES.md describes updating openapi.yaml before (or as the first step of) updating server.js — not implementation-first",
+      "max_score": 5
+    }
+  ]
+}

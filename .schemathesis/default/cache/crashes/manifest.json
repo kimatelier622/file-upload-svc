@@ -3,5 +3,5 @@
   "schemathesis_version": "4.24.3",
   "schema_location": "specs/001-authenticated-upload/contracts/openapi.yaml",
   "base_url": "http://localhost:8080/api",
-  "created_at": "2026-08-13T08:36:30.773874+00:00"
+  "created_at": "2026-08-26T07:29:14.874444+00:00"
 }

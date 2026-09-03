@@ -1,0 +1,63 @@
+openapi: "3.1.0"
+info:
+  title: File Upload Service
+  version: "1.0.0"
+  description: Internal file storage service for Nexus Systems
+
+paths:
+  /upload:
+    post:
+      summary: Upload a file
+      operationId: uploadFile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileRecord"
+        "401":
+          description: Unauthorized – missing or invalid Bearer token
+        "413":
+          description: Payload too large – file exceeds 10 MiB
+        "415":
+          description: Unsupported media type – only jpg, jpeg, png, pdf are accepted
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    FileRecord:
+      type: object
+      properties:
+        fileId:
+          type: string
+          description: Unique identifier for the stored file
+        filename:
+          type: string
+          description: Original filename as provided by the uploader
+        size:
+          type: integer
+          description: File size in bytes
+        uploadedAt:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp of when the file was uploaded

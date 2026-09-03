@@ -1,0 +1,56 @@
+{
+  "context": "Tests whether the agent implements file validation using MIME-type/Content-Type detection (not just extension), enforces the correct allowed type list and exact size limit, checks size before any storage, and returns the correct HTTP error codes for violations.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "MIME/Content-Type detection",
+      "description": "Validation uses Content-Type or MIME-type detection based on file content (e.g. magic bytes, python-magic, file-type npm package, or equivalent) — NOT solely the file extension or filename",
+      "max_score": 20
+    },
+    {
+      "name": "Allowed type: JPEG",
+      "description": "The allowed-types list explicitly includes both 'jpg' and 'jpeg' (or their MIME equivalents image/jpeg)",
+      "max_score": 10
+    },
+    {
+      "name": "Allowed type: PNG",
+      "description": "The allowed-types list explicitly includes 'png' (or MIME equivalent image/png)",
+      "max_score": 5
+    },
+    {
+      "name": "Allowed type: PDF",
+      "description": "The allowed-types list explicitly includes 'pdf' (or MIME equivalent application/pdf)",
+      "max_score": 5
+    },
+    {
+      "name": "No other types allowed",
+      "description": "The validator does NOT allow types beyond jpg/jpeg/png/pdf — no gif, bmp, tiff, docx, or other formats are included in the allowlist",
+      "max_score": 5
+    },
+    {
+      "name": "Exact size limit",
+      "description": "The maximum file size is set to exactly 10,485,760 bytes (10 MiB) — not a rounded value like 10,000,000 or 10 * 1024 * 1000",
+      "max_score": 15
+    },
+    {
+      "name": "Size checked before storage",
+      "description": "In the code's execution flow, the size check occurs before any write, save, or storage operation — not after",
+      "max_score": 15
+    },
+    {
+      "name": "HTTP 415 for type violations",
+      "description": "When a file type is not in the allowed list, the validator returns, raises, or signals HTTP status 415 (Unsupported Media Type)",
+      "max_score": 15
+    },
+    {
+      "name": "HTTP 413 for size violations",
+      "description": "When a file exceeds the size limit, the validator returns, raises, or signals HTTP status 413 (Content Too Large / Request Entity Too Large)",
+      "max_score": 5
+    },
+    {
+      "name": "DESIGN.md present",
+      "description": "A DESIGN.md file exists in the working directory and explains the type detection approach and why it was chosen over extension-only checking",
+      "max_score": 5
+    }
+  ]
+}

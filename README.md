@@ -100,19 +100,19 @@ This contract defines:
 
 ### Environment Setup
 
-powershell
-Install uv (Python package manager)
+```powershell
+## Install uv (Python package manager)
 
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
-Install specify-cli (Spec Kit CLI)
+## Install specify-cli (Spec Kit CLI)
 
 uv tool install specify-cli --from git+https://github.com/github/spec-kit.git
 
 Verify
 
 specify --version
-
+```
 
 ### Initialize Project (Codex Integration, Skills Mode)
 

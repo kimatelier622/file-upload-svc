@@ -1,0 +1,56 @@
+{
+  "context": "Tests whether the agent follows contract-first OpenAPI 3.1 design, enforces Bearer JWT authentication with correct error codes, restricts uploads to jpg/jpeg/png/pdf using Content-Type detection, and applies the exact 10 MiB size ceiling with the correct error status.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "OpenAPI spec file present",
+      "description": "A file named openapi.yaml or openapi.json exists in the working directory",
+      "max_score": 8
+    },
+    {
+      "name": "OpenAPI version 3.1",
+      "description": "The spec file declares openapi version 3.1.x (not 3.0.x or 2.x)",
+      "max_score": 10
+    },
+    {
+      "name": "Bearer token auth declared",
+      "description": "The upload endpoint requires a Bearer token (JWT) as documented in the spec — e.g. a securityScheme of type http with scheme bearer",
+      "max_score": 10
+    },
+    {
+      "name": "401 for invalid auth",
+      "description": "The implementation returns HTTP 401 when the Authorization header is missing, malformed, or contains an expired/invalid token",
+      "max_score": 10
+    },
+    {
+      "name": "File type allowlist",
+      "description": "Only jpg, jpeg, png, and pdf file types are accepted; all other types are rejected",
+      "max_score": 10
+    },
+    {
+      "name": "Content-Type based validation",
+      "description": "File type validation inspects the Content-Type (MIME type) of the uploaded file rather than relying solely on the file extension",
+      "max_score": 12
+    },
+    {
+      "name": "415 for rejected type",
+      "description": "The implementation returns HTTP 415 when an upload is rejected due to an unsupported file type",
+      "max_score": 10
+    },
+    {
+      "name": "10 MiB size limit",
+      "description": "The maximum accepted file size is exactly 10 MiB (10,485,760 bytes) — not a different value such as 10 MB (10,000,000 bytes) or another approximation",
+      "max_score": 10
+    },
+    {
+      "name": "413 for oversized file",
+      "description": "The implementation returns HTTP 413 when an upload exceeds the size limit",
+      "max_score": 10
+    },
+    {
+      "name": "Spec-implementation alignment",
+      "description": "The HTTP status codes and authentication scheme defined in openapi.yaml (or openapi.json) match those used in the implementation source code",
+      "max_score": 10
+    }
+  ]
+}

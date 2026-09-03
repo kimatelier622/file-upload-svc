@@ -1,0 +1,4 @@
+{
+  "description": "Automated test coverage for upload security controls",
+  "include": ["./inputs"]
+}
